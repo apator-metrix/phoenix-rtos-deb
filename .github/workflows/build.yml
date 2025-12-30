@@ -1,0 +1,28 @@
+name: Build
+
+on:
+  workflow_dispatch:
+  push:
+    tags: ["*.*.*-*"]
+
+jobs:
+  Build:
+    runs-on: ubuntu-24.04
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+  
+      - name: Install prerequisities
+        run: sudo apt-get install build-essential mtd-utils autoconf texinfo genext2fs libtool libhidapi-dev python3
+
+      - name: Build the toolchain
+        run: make
+  
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        if: github.ref_type == 'tag'
+        with:
+          name: Release ${{ github.ref_name }}
+          files: _out/arm-phoenix-toolchain_${{ github.ref_name }}~noble.deb
