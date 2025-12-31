@@ -6,7 +6,8 @@ on:
     tags: ["*.*.*-*"]
 
 jobs:
-  Build:
+  build-toolchain:
+    name: Build the toolchain for Ubuntu 24.04
     runs-on: ubuntu-24.04
 
     steps:
@@ -18,11 +19,57 @@ jobs:
         run: sudo apt-get install build-essential mtd-utils autoconf texinfo genext2fs libtool libhidapi-dev python3
 
       - name: Build the toolchain
-        run: make
+        run: make toolchain
   
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: arm-phoenix-toolchain
+          path: _out/arm-phoenix-toolchain*
+
+
+  build-libstdcxx:
+    name: Build the C++ library
+    runs-on: ubuntu-24.04
+    needs: build-toolchain
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Fetch the toolchain
+        uses: actions/download-artifact@v4
+        with:
+          name: arm-phoenix-toolchain
+
+      - name: Install the toolchain
+        run: sudo apt install ./arm-phoenix-toolchain_*~noble.deb
+
+      - name: Build the C++ library
+        run: make libstdc++
+  
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: arm-phoenix-libstdc++
+          path: _out/arm-phoenix-libstdc++*
+
+
+  release:
+    name: Make the release
+    runs-on: ubuntu-latest
+    needs: build-libstdcxx
+    if: startsWith(github.ref, 'refs/tags/')
+
+    steps:
+      - name: Fetch build output
+        uses: actions/download-artifact@v4
+
       - name: Release
         uses: softprops/action-gh-release@v1
-        if: github.ref_type == 'tag'
         with:
           name: Release ${{ github.ref_name }}
-          files: _out/arm-phoenix-toolchain_${{ github.ref_name }}~noble.deb
+          files:
+            arm-phoenix-toolchain/arm-phoenix-toolchain_${{ github.ref_name }}~noble.deb
+            arm-phoenix-libstdc++/arm-phoenix-libstdc++_${{ github.ref_name }}.deb
