@@ -45,10 +45,14 @@ _pkg/DEBIAN/control:
 	echo "Description: Phoenix-RTOS cross toolchain for ARM" >> $@
 
 
-$(INSTALL_PREFIX)/arm-phoenix/bin/arm-phoenix-gcc: _ext/phoenix-rtos-build/toolchain/build-toolchain.sh
+$(INSTALL_PREFIX)/arm-phoenix/bin/arm-phoenix-gcc: _ext/phoenix-rtos-build/toolchain/build.sh
 	mkdir -p $(@D)
 	cd $(<D) && ./$(<F) arm-phoenix $(INSTALL_PREFIX)
 
+
+_ext/phoenix-rtos-build/toolchain/build.sh: _ext/phoenix-rtos-build/toolchain/build-toolchain.sh
+	sed -E "s/-j[0-9]+/-j$(shell nproc --all)/" $< > $@
+	chmod +x $@
 
 _ext/phoenix-rtos-build/toolchain/build-toolchain.sh: \
 	_ext/phoenix-rtos-build \
