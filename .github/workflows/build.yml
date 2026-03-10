@@ -3,7 +3,7 @@ name: Build
 on:
   workflow_dispatch:
   push:
-    tags: ["*.*.*-*"]
+    tags: ["*.*.*-*", "99-*"]
 
 jobs:
   build-toolchain:

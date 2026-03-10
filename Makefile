@@ -2,12 +2,12 @@
 #
 # Ubuntu package building script
 #
-# (C) 2025 Apator Metrix
+# (C) 2025-2025 Apator Metrix
 # Author: Mateusz Karcz
 
 
-VERSION ?= 3.3.2
-REVISION ?= 1
+VERSION ?= 99
+REVISION ?= 260310
 UBUNTU ?= noble
 
 
@@ -106,4 +106,4 @@ _ext/phoenix-rtos-build/toolchain/build-toolchain.sh: \
 
 _ext/%:
 	git clone https://github.com/phoenix-rtos/$(@F).git _ext/$(@F)
-	cd _ext/$(@F) && git checkout v$(VERSION)
+	cd _ext/$(@F) && git checkout master
