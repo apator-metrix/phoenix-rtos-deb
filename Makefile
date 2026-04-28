@@ -11,6 +11,7 @@ REVISION ?= 1
 UBUNTU ?= noble
 
 
+PROJECT_PREFIX   = $(shell pwd)
 TOOLCHAIN_PREFIX = $(shell pwd)/_int/toolchain
 LIBSTDCXX_PREFIX = $(shell pwd)/_int/libstdc++
 
@@ -103,6 +104,7 @@ _ext/phoenix-rtos-build/toolchain/build-toolchain.sh: \
 	_ext/phoenix-rtos-kernel \
 	_ext/libphoenix
 	@test -f $@ || { echo "Missing $@ (did clone/checkout succeed?)"; exit 1; }
+	cd _ext/phoenix-rtos-build && git apply $(PROJECT_PREFIX)/build-toolchain.sh.patch
 
 _ext/%:
 	git clone https://github.com/phoenix-rtos/$(@F).git _ext/$(@F)
