@@ -6,7 +6,7 @@
 # Author: Mateusz Karcz
 
 
-VERSION ?= 3.3.2
+VERSION ?= 3.4.0
 REVISION ?= 1
 UBUNTU ?= noble
 
@@ -14,6 +14,8 @@ UBUNTU ?= noble
 PROJECT_PREFIX   = $(shell pwd)
 TOOLCHAIN_PREFIX = $(shell pwd)/_int/toolchain
 LIBSTDCXX_PREFIX = $(shell pwd)/_int/libstdc++
+
+OS_VERSION_FILE = $(PROJECT_PREFIX)/_ext/OS-VERSION
 
 
 all: toolchain libstdc++
@@ -51,9 +53,11 @@ _pkg/toolchain/DEBIAN/control:
 	echo "Description: Phoenix-RTOS cross toolchain for ARM" >> $@
 
 
-$(TOOLCHAIN_PREFIX)/arm-phoenix/bin/arm-phoenix-gcc: _ext/phoenix-rtos-build/toolchain/build.sh
+$(TOOLCHAIN_PREFIX)/arm-phoenix/bin/arm-phoenix-gcc: \
+	_ext/phoenix-rtos-build/toolchain/build.sh \
+	$(OS_VERSION_FILE)
 	mkdir -p $(@D)
-	cd $(<D) && ./$(<F) arm-phoenix $(TOOLCHAIN_PREFIX)
+	cd $(<D) && OS_VERSION_FILE=$(OS_VERSION_FILE) ./$(<F) arm-phoenix $(TOOLCHAIN_PREFIX)
 
 
 libstdc++: _out/arm-phoenix-libstdc++_$(VERSION)-$(REVISION).deb
@@ -80,7 +84,7 @@ _pkg/libstdc++/DEBIAN/control:
 
 $(LIBSTDCXX_PREFIX)/arm-phoenix: _ext/phoenix-rtos-build/toolchain/build-libstdc++.sh
 	mkdir -p $(@D)
-	cd $(<D) && ./$(<F) arm-phoenix $(LIBSTDCXX_PREFIX)
+	cd $(<D) && OS_VERSION_FILE=$(OS_VERSION_FILE) ./$(<F) arm-phoenix $(LIBSTDCXX_PREFIX)
 
 
 _ext/phoenix-rtos-build/toolchain/build.sh: _ext/phoenix-rtos-build/toolchain/build-toolchain.sh
@@ -105,6 +109,9 @@ _ext/phoenix-rtos-build/toolchain/build-toolchain.sh: \
 	_ext/libphoenix
 	@test -f $@ || { echo "Missing $@ (did clone/checkout succeed?)"; exit 1; }
 	cd _ext/phoenix-rtos-build && git apply $(PROJECT_PREFIX)/build-toolchain.sh.patch
+
+$(OS_VERSION_FILE):
+	wget -O $@ https://github.com/phoenix-rtos/phoenix-rtos-project/raw/refs/tags/v$(VERSION)/OS-VERSION
 
 _ext/%:
 	git clone https://github.com/phoenix-rtos/$(@F).git _ext/$(@F)
