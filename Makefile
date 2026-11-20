@@ -6,11 +6,15 @@
 # Author: Mateusz Karcz
 
 
-VERSION ?= 3.4.0
-REVISION ?= 1
+VERSION ?= 3.5.0
+REVISION ?= 0
 UBUNTU ?= noble
 DEB_VERSION := $(VERSION)-$(REVISION)~$(UBUNTU)
 
+PHOS_STDLIB_VERSION  ?= fc600456e6a9e4b626b1a571cf8111ba8b55f903
+PHOS_BUILD_VERSION   ?= 46a69e240ef8cbaa5851b7739ad076209c716181
+PHOS_KERNEL_VERSION  ?= 952975c662b775a8dd506a3449da8ae034e610a5
+PHOS_PROJECT_VERSION ?= 8776f38679a7609b925008aa4a0ca8c99b429a9f
 
 PROJECT_PREFIX   = $(shell pwd)
 BINUTILS_PREFIX  = $(PROJECT_PREFIX)/_int/binutils
@@ -79,16 +83,16 @@ $(BUILD_SCRIPT): _ext/phoenix-rtos-build/README.md
 	cd _ext/phoenix-rtos-build && git apply $(PROJECT_PREFIX)/build-toolchain.sh.patch
 
 $(OS_VERSION_FILE):
-	wget -O $@ https://github.com/phoenix-rtos/phoenix-rtos-project/raw/refs/tags/v$(VERSION)/OS-VERSION
+	wget -O $@ https://github.com/phoenix-rtos/phoenix-rtos-project/raw/$(PHOS_PROJECT_VERSION)/OS-VERSION
 
 _ext/libphoenix/README.md: _ext/libphoenix
-	cd $(@D) && git checkout v$(VERSION)
+	cd $(@D) && git checkout $(PHOS_STDLIB_VERSION)
 
 _ext/phoenix-rtos-build/README.md: _ext/phoenix-rtos-build
-	cd $(@D) && git checkout v$(VERSION)
+	cd $(@D) && git checkout $(PHOS_BUILD_VERSION)
 
 _ext/phoenix-rtos-kernel/README.md: _ext/phoenix-rtos-kernel
-	cd $(@D) && git checkout v$(VERSION)
+	cd $(@D) && git checkout $(PHOS_KERNEL_VERSION)
 
 _ext/%:
 	git clone https://github.com/phoenix-rtos/$(@F).git _ext/$(@F)
