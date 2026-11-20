@@ -1,0 +1,62 @@
+name: Build toolchain for Ubuntu
+
+on:
+  workflow_call:
+    inputs:
+      host:
+        required: true
+        type: string
+      ubuntu:
+        required: true
+        type: string
+
+env:
+  UBUNTU: ${{ inputs.ubuntu }}
+
+jobs:
+  binutils:
+    runs-on: ${{ inputs.host }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/setup-build
+      - run: make binutils
+      - uses: actions/upload-artifact@v7
+        with:
+          name: arm-phoenix-binutils-${{ inputs.ubuntu }}
+          path: _out/arm-phoenix-binutils*
+
+  gcc:
+    needs: binutils
+    runs-on: ${{ inputs.host }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/setup-build
+      - uses: actions/download-artifact@v7
+        with:
+          path: debs
+          pattern: arm-phoenix-*-${{ inputs.ubuntu }}
+          merge-multiple: true
+      - run: sudo dpkg -i debs/*.deb
+      - run: make gcc
+      - uses: actions/upload-artifact@v7
+        with:
+          name: arm-phoenix-gcc-${{ inputs.ubuntu }}
+          path: _out/arm-phoenix-gcc*
+
+  libstdcxx:
+    needs: gcc
+    runs-on: ${{ inputs.host }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/setup-build
+      - uses: actions/download-artifact@v7
+        with:
+          path: debs
+          pattern: arm-phoenix-*-${{ inputs.ubuntu }}
+          merge-multiple: true
+      - run: sudo dpkg -i debs/*.deb
+      - run: make libstdc++
+      - uses: actions/upload-artifact@v7
+        with:
+          name: arm-phoenix-libstdc++-${{ inputs.ubuntu }}
+          path: _out/arm-phoenix-libstdc++*
