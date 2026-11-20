@@ -7,29 +7,20 @@ on:
 
 jobs:
   build-toolchain:
-    name: Build the toolchain for Ubuntu 24.04
-    runs-on: ubuntu-24.04
+    name: Build for ${{ matrix.host }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - host: ubuntu-24.04
+            ubuntu: noble
+          - host: ubuntu-26.04
+            ubuntu: resolute
 
-    steps:
-      - uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
-  
-      - name: Install prerequisities
-        run: sudo apt-get install build-essential mtd-utils autoconf texinfo genext2fs libtool libhidapi-dev python3
-
-      - name: Build the toolchain
-        run: |
-          make binutils
-          sudo dpkg -i _out/arm-phoenix-binutils_${{ github.ref_name }}~noble_amd64.deb 
-          make gcc
-  
-      - name: Upload artifact
-        uses: actions/upload-artifact@v7
-        with:
-          name: arm-phoenix-toolchain
-          path: _out/arm-phoenix-toolchain*
-
+    uses: ./.github/workflows/build-ubuntu.yml
+    with:
+      host: ${{ matrix.host }}
+      ubuntu: ${{ matrix.ubuntu }}
 
   release:
     name: Make the release
@@ -39,11 +30,15 @@ jobs:
 
     steps:
       - name: Fetch build output
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
+        with:
+          path: debs
+          pattern: arm-phoenix-*-*
+          merge-multiple: true
 
       - name: Release
         uses: softprops/action-gh-release@v1
         with:
           name: Release ${{ github.ref_name }}
           files:
-            arm-phoenix-toolchain/arm-phoenix-*.deb
+            debs/arm-phoenix-*.deb
